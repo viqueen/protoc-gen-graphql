@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * Copyright <update-me> <update-me>
  *
@@ -13,8 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const project = (name: string) => {
-    return `project ${name}`;
-};
+import { Command } from 'commander';
 
-export { project };
+const program = new Command();
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+program.version(require('../package.json').version);
+program.parse(process.argv);
