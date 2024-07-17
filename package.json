@@ -1,6 +1,6 @@
 {
   "name": "protoc-gen-graphql",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "repository": "git@github.com:viqueen/protoc-gen-graphql.git",
   "author": "Hasnae R. <>",
   "license": "Apache-2.0",
