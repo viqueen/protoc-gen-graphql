@@ -22,6 +22,8 @@
   },
   "devDependencies": {
     "@labset-eslint/eslint-plugin": "^1.2.0",
+    "@types/concat-stream": "^2.0.3",
+    "@types/google-protobuf": "^3.15.12",
     "@types/jest": "^29.5.1",
     "@types/node": "^20.2.3",
     "@typescript-eslint/eslint-plugin": "^5.59.7",
@@ -35,6 +37,10 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "commander": "^12.1.0"
+    "commander": "^12.1.0",
+    "concat-stream": "^2.0.0",
+    "google-protobuf": "^3.21.4",
+    "graphql": "^16.9.0",
+    "protobufjs": "^7.3.2"
   }
 }

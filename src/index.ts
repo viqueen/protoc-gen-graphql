@@ -1,6 +1,7 @@
 #!/usr/bin/env node
+
 /**
- * Copyright <update-me> <update-me>
+ * Copyright 2024 viqueen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Command } from 'commander';
+import concatStream from 'concat-stream';
+
+import { handler } from './handler';
 
 const program = new Command();
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-program.version(require('../package.json').version);
+program
+    .name('protoc-gen-graphql')
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    .version(require('../package.json').version)
+    .description('Generate GraphQL schema from Protobuf definitions')
+    .action(async () => {
+        process.stdin.pipe(concatStream(handler));
+    });
+
 program.parse(process.argv);
