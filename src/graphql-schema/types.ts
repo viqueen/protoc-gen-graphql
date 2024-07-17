@@ -39,6 +39,7 @@ interface GraphQLSchema {
     enums: GraphQLEnum[];
     queries: GraphQLEndpoint[];
     mutations: GraphQLEndpoint[];
+    inputs: GraphQLType[];
 }
 
 export type {

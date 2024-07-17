@@ -23,20 +23,31 @@ import {
 } from './types';
 
 const schemaToString = (schema: GraphQLSchema) => {
-    const withTypes = typesToSchemaString(schema.types);
+    const withTypes = definitionsToSchemaString('type', schema.types);
+    const withInputs = definitionsToSchemaString('input', schema.inputs);
     const withEnums = enumsToSchemaString(schema.enums);
-    const withQueries = queriesToSchemaString(schema.queries);
-    const withMutations = mutationsToSchemaString(schema.mutations);
-    return `${withTypes}\n\n${withEnums}\n\n${withQueries}\n\n${withMutations}`;
+    const withQuery = queriesToSchemaString(schema.queries);
+    const withMutation = mutationsToSchemaString(schema.mutations);
+    return [withTypes, withEnums, withInputs, withQuery, withMutation]
+        .filter((str) => str.length > 0)
+        .join('\n\n')
+        .trim();
 };
 
-const typesToSchemaString = (types: GraphQLType[]): string => {
+const definitionsToSchemaString = (
+    definition: 'input' | 'type',
+    types: GraphQLType[]
+): string => {
+    if (types.length === 0) {
+        return '';
+    }
     return types
         .map((type) => {
             const fields = fieldsToSchemaString(type.fields);
-            return `type ${type.name} {\n${fields}\n}`;
+            return `${definition} ${type.name} {\n${fields}\n}`;
         })
-        .join('\n\n');
+        .join('\n\n')
+        .trim();
 };
 
 const fieldsToSchemaString = (fields: GraphQLField[]): string => {
@@ -56,7 +67,8 @@ const enumsToSchemaString = (enums: GraphQLEnum[]): string => {
                 .join('\n');
             return `enum ${enumType.name} {\n${values}\n}`;
         })
-        .join('\n\n');
+        .join('\n\n')
+        .trim();
 };
 
 const endpointsToSchemaString = (endpoints: GraphQLEndpoint[]): string => {

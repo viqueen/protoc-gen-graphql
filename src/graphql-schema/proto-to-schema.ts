@@ -17,7 +17,8 @@ import {
     DescriptorProto,
     EnumDescriptorProto,
     FieldDescriptorProto,
-    FileDescriptorProto
+    FileDescriptorProto,
+    ServiceDescriptorProto
 } from 'google-protobuf/google/protobuf/descriptor_pb';
 
 import {
@@ -29,11 +30,32 @@ import {
 } from './types';
 
 const protoToSchema = (proto: FileDescriptorProto): GraphQLSchema => {
-    const types = proto.getMessageTypeList().map(asType);
+    const services = proto.getServiceList().map(asService);
+    const allTypes = proto.getMessageTypeList().map(asType);
     const enums = proto.getEnumTypeList().map(asEnum);
-    const queries: GraphQLEndpoint[] = [];
-    const mutations: GraphQLEndpoint[] = [];
-    return { types, enums, queries, mutations };
+    const queries: GraphQLEndpoint[] = services.flatMap(
+        (service) => service.queries
+    );
+    const mutations: GraphQLEndpoint[] = services.flatMap(
+        (service) => service.mutations
+    );
+    const inputTypeNames = services.flatMap(
+        (service) => service.inputTypeNames
+    );
+
+    const filteredTypes = allTypes.filter(
+        (type) => !inputTypeNames.includes(type.name)
+    );
+    const inputTypes = allTypes.filter((type) =>
+        inputTypeNames.includes(type.name)
+    );
+    return {
+        types: filteredTypes,
+        inputs: inputTypes,
+        enums,
+        queries,
+        mutations
+    };
 };
 
 const asFieldType = (field: FieldDescriptorProto): string => {
@@ -59,12 +81,16 @@ const asFieldType = (field: FieldDescriptorProto): string => {
             return 'String';
         case FieldDescriptorProto.Type.TYPE_MESSAGE:
         case FieldDescriptorProto.Type.TYPE_ENUM: {
-            const lastDot = field.getTypeName()?.lastIndexOf('.') ?? 1;
-            return field.getTypeName()?.slice(lastDot + 1) ?? '';
+            return asMessageTypeName(field.getTypeName());
         }
         default:
             return 'String';
     }
+};
+
+const asMessageTypeName = (name?: string): string => {
+    const lastDot = name?.lastIndexOf('.') ?? 1;
+    return name?.slice(lastDot + 1) ?? '';
 };
 
 const asField = (field: FieldDescriptorProto): GraphQLField => {
@@ -87,6 +113,53 @@ const asEnum = (proto: EnumDescriptorProto): GraphQLEnum => {
         name: proto.getName() ?? '',
         values: proto.getValueList().map((value) => value.getName() ?? '')
     };
+};
+
+interface GraphQLService {
+    queries: GraphQLEndpoint[];
+    mutations: GraphQLEndpoint[];
+    inputTypeNames: string[];
+}
+
+const asService = (proto: ServiceDescriptorProto): GraphQLService => {
+    const queries: GraphQLEndpoint[] = [];
+    const mutations: GraphQLEndpoint[] = [];
+    const inputTypeNames: string[] = [];
+
+    proto.getMethodList().forEach((method) => {
+        const endpoint: GraphQLEndpoint = {
+            name: method.getName() ?? '',
+            inputType: asMessageTypeName(method.getInputType()),
+            outputType: asMessageTypeName(method.getOutputType())
+        };
+        inputTypeNames.push(endpoint.inputType);
+        if (isQuery(endpoint.name)) {
+            queries.push(endpoint);
+        } else if (isMutation(endpoint.name)) {
+            mutations.push(endpoint);
+        } else {
+            console.error(`Unknown endpoint type: ${endpoint.name}`);
+        }
+    });
+
+    return {
+        queries,
+        mutations,
+        inputTypeNames
+    };
+};
+
+const isQuery = (name: string): boolean => {
+    const isGet = name.startsWith('Get');
+    const isList = name.startsWith('List');
+    return isGet || isList;
+};
+
+const isMutation = (name: string): boolean => {
+    const iCreate = name.startsWith('Create');
+    const iUpdate = name.startsWith('Update');
+    const iDelete = name.startsWith('Delete');
+    return iCreate || iUpdate || iDelete;
 };
 
 export { protoToSchema };
