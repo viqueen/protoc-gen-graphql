@@ -16,7 +16,8 @@
 import {
     DescriptorProto,
     EnumDescriptorProto,
-    FieldDescriptorProto
+    FieldDescriptorProto,
+    FileDescriptorProto
 } from 'google-protobuf/google/protobuf/descriptor_pb';
 
 interface GraphQLField {
@@ -121,11 +122,17 @@ const enumsToSchemaString = (enums: GraphQLEnum[]): string => {
         .join('\n\n');
 };
 
+const asSchema = (proto: FileDescriptorProto): GraphQLSchema => {
+    const types = proto.getMessageTypeList().map(asType);
+    const enums = proto.getEnumTypeList().map(asEnum);
+    return { types, enums };
+};
+
 const toSchemaString = (schema: GraphQLSchema): string => {
     const withTypes = typesToSchemaString(schema.types);
     const withEnums = enumsToSchemaString(schema.enums);
     return `${withTypes}\n\n${withEnums}`;
 };
 
-export { asType, asEnum, toSchemaString };
+export { asSchema, toSchemaString };
 export type { GraphQLType, GraphQLField, GraphQLEnum };

@@ -18,29 +18,27 @@ import {
     CodeGeneratorResponse
 } from 'google-protobuf/google/protobuf/compiler/plugin_pb';
 
-import { asEnum, asType, toSchemaString } from './graphql-schema';
+import { asSchema, toSchemaString } from './graphql-schema';
 
-const handler = (input: Buffer) => {
+const pluginHandler = (input: Buffer) => {
     const typedArray = new Uint8Array(input);
     const request = CodeGeneratorRequest.deserializeBinary(typedArray);
     const response = new CodeGeneratorResponse();
-    request.getProtoFileList().forEach((protoFile) => {
-        const messages = protoFile.getMessageTypeList();
-        const enums = protoFile.getEnumTypeList();
 
-        const schema = {
-            types: messages.map(asType),
-            enums: enums.map(asEnum)
-        };
+    request.getProtoFileList().forEach((protoFile) => {
+        const schema = asSchema(protoFile);
 
         const inputFileName = protoFile.getName() ?? '';
         const outputFilName = inputFileName.replace(/\.proto$/, '.graphql');
+
         const file = new CodeGeneratorResponse.File();
         file.setName(outputFilName);
         file.setContent(toSchemaString(schema));
+
         response.addFile(file);
     });
+
     process.stdout.write(Buffer.from(response.serializeBinary()));
 };
 
-export { handler };
+export { pluginHandler };

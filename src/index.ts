@@ -19,7 +19,7 @@
 import { Command } from 'commander';
 import concatStream from 'concat-stream';
 
-import { handler } from './handler';
+import { pluginHandler } from './lib/plugin-handler';
 
 const program = new Command();
 
@@ -29,7 +29,7 @@ program
     .version(require('../package.json').version)
     .description('Generate GraphQL schema from Protobuf definitions')
     .action(async () => {
-        process.stdin.pipe(concatStream(handler));
+        process.stdin.pipe(concatStream(pluginHandler));
     });
 
 program.parse(process.argv);
