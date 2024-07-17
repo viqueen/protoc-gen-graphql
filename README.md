@@ -1,8 +1,29 @@
-## typescript-package
+## protoc-gen-graphql
 
-Template for building node packages using Typescript
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=viqueen_protoc-gen-graphql&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=viqueen_protoc-gen-graphql)
 
-### environment
+Protoc plugin to generate GraphQL schema from protobuf schema.
+
+### install it
+
+#### from stable
+
+- with **homebrew** (preferred)
+
+```bash
+brew tap viqueen/labset
+brew install protoc-gen-graphql
+```
+
+- with **npm**
+
+```bash
+npm install @labset/protoc-gen-graphql -g
+```
+
+### development
+
+#### environment
 
 - **[nvm](https://github.com/nvm-sh/nvm)** to manage node versions.
 
@@ -16,7 +37,14 @@ brew install nvm
 brew install yarn
 ```
 
-### house-keeping
+#### house-keeping
+
+- install dependencies
+
+```bash
+nvm install
+yarn
+```
 
 - build it
 

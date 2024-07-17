@@ -1,6 +1,8 @@
 {
   "name": "@labset/protoc-gen-graphql",
-  "version": "0.0.1",
+  "version": "1.0.0",
+  "description": "A protoc plugin to generate GraphQL schema from protobuf files",
+  "preferGlobal": false,
   "repository": "git@github.com:viqueen/protoc-gen-graphql.git",
   "author": "Hasnae R. <>",
   "license": "Apache-2.0",
