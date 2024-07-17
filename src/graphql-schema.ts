@@ -15,6 +15,7 @@
  */
 import {
     DescriptorProto,
+    EnumDescriptorProto,
     FieldDescriptorProto
 } from 'google-protobuf/google/protobuf/descriptor_pb';
 
@@ -59,7 +60,8 @@ const asFieldType = (field: FieldDescriptorProto): string => {
         case FieldDescriptorProto.Type.TYPE_STRING:
         case FieldDescriptorProto.Type.TYPE_BYTES:
             return 'String';
-        case FieldDescriptorProto.Type.TYPE_MESSAGE: {
+        case FieldDescriptorProto.Type.TYPE_MESSAGE:
+        case FieldDescriptorProto.Type.TYPE_ENUM: {
             const lastDot = field.getTypeName()?.lastIndexOf('.') ?? 1;
             return field.getTypeName()?.slice(lastDot + 1) ?? '';
         }
@@ -83,7 +85,14 @@ const asType = (proto: DescriptorProto): GraphQLType => {
     };
 };
 
-const fieldsToSchema = (fields: GraphQLField[]): string => {
+const asEnum = (proto: EnumDescriptorProto): GraphQLEnum => {
+    return {
+        name: proto.getName() ?? '',
+        values: proto.getValueList().map((value) => value.getName() ?? '')
+    };
+};
+
+const fieldsToSchemaString = (fields: GraphQLField[]): string => {
     return fields
         .map((field) => {
             const type = field.repeated ? `[${field.type}]` : field.type;
@@ -92,18 +101,31 @@ const fieldsToSchema = (fields: GraphQLField[]): string => {
         .join('\n');
 };
 
-const typesToSchema = (types: GraphQLType[]): string => {
+const typesToSchemaString = (types: GraphQLType[]): string => {
     return types
         .map((type) => {
-            const fields = fieldsToSchema(type.fields);
+            const fields = fieldsToSchemaString(type.fields);
             return `type ${type.name} {\n${fields}\n}`;
         })
         .join('\n\n');
 };
 
-const toSchemaString = (schema: GraphQLSchema): string => {
-    return typesToSchema(schema.types);
+const enumsToSchemaString = (enums: GraphQLEnum[]): string => {
+    return enums
+        .map((enumType) => {
+            const values = enumType.values
+                .map((value) => `    ${value}`)
+                .join('\n');
+            return `enum ${enumType.name} {\n${values}\n}`;
+        })
+        .join('\n\n');
 };
 
-export { asType, toSchemaString };
+const toSchemaString = (schema: GraphQLSchema): string => {
+    const withTypes = typesToSchemaString(schema.types);
+    const withEnums = enumsToSchemaString(schema.enums);
+    return `${withTypes}\n\n${withEnums}`;
+};
+
+export { asType, asEnum, toSchemaString };
 export type { GraphQLType, GraphQLField, GraphQLEnum };

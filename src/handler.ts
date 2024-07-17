@@ -18,18 +18,21 @@ import {
     CodeGeneratorResponse
 } from 'google-protobuf/google/protobuf/compiler/plugin_pb';
 
-import { asType, toSchemaString } from './graphql-schema';
+import { asEnum, asType, toSchemaString } from './graphql-schema';
 
 const handler = (input: Buffer) => {
     const typedArray = new Uint8Array(input);
     const request = CodeGeneratorRequest.deserializeBinary(typedArray);
     const response = new CodeGeneratorResponse();
     request.getProtoFileList().forEach((protoFile) => {
-        const graphQLTypes = protoFile.getMessageTypeList().map(asType);
+        const messages = protoFile.getMessageTypeList();
+        const enums = protoFile.getEnumTypeList();
+
         const schema = {
-            types: graphQLTypes,
-            enums: []
+            types: messages.map(asType),
+            enums: enums.map(asEnum)
         };
+
         const inputFileName = protoFile.getName() ?? '';
         const outputFilName = inputFileName.replace(/\.proto$/, '.graphql');
         const file = new CodeGeneratorResponse.File();
