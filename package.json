@@ -1,5 +1,5 @@
 {
-  "name": "protoc-gen-graphql",
+  "name": "@labset/protoc-gen-graphql",
   "version": "0.0.1",
   "repository": "git@github.com:viqueen/protoc-gen-graphql.git",
   "author": "Hasnae R. <>",
