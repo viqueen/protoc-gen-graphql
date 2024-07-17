@@ -18,8 +18,33 @@
 
 import { Command } from 'commander';
 import concatStream from 'concat-stream';
+import {
+    CodeGeneratorRequest,
+    CodeGeneratorResponse
+} from 'google-protobuf/google/protobuf/compiler/plugin_pb';
 
-import { pluginHandler } from './lib/plugin-handler';
+import { protoToSchema, schemaToString } from './graphql-schema';
+
+const pluginHandler = (input: Buffer) => {
+    const typedArray = new Uint8Array(input);
+    const request = CodeGeneratorRequest.deserializeBinary(typedArray);
+    const response = new CodeGeneratorResponse();
+
+    request.getProtoFileList().forEach((protoFile) => {
+        const schema = protoToSchema(protoFile);
+
+        const inputFileName = protoFile.getName() ?? '';
+        const outputFilName = inputFileName.replace(/\.proto$/, '.graphql');
+
+        const file = new CodeGeneratorResponse.File();
+        file.setName(outputFilName);
+        file.setContent(schemaToString(schema));
+
+        response.addFile(file);
+    });
+
+    process.stdout.write(Buffer.from(response.serializeBinary()));
+};
 
 const program = new Command();
 
