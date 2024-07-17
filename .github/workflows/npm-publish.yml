@@ -1,4 +1,4 @@
-name: @labset/protoc-gen-graphql publish
+name: npm publish
 
 on:
   release:
